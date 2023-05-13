@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/1.10.2/jquery.js"></script>
+</head>
+
+<body>
+    <!-- hello, jquery -->
+    <div id="example"></div>
+</body>
+
+<script>
+'use strict';
+
+// 推荐在文档完全加载之后再运行代码
+$(document).ready(function() {  /* JS: 底层根据window.load事件和document.readyState属性实现 */
+    // $()通过CSS选择器或直接接收 来获得DOM原生Node节点对象，并将其封装为jQuery对象。此后其便可使用jQuery定义的一系列便捷方法，并链式地调用这些方法
+    $("#example").text("hello, jquery").click(function() {
+        $(this).fadeOut(2000, () => {
+            alert("jQuery版本号：" + $.fn.jquery);  // jQuery版本号
+            console.log("Powered By Javascript");
+            console.log(this.constructor.name + ':', this.constructor);  // Node
+            console.log($(this).constructor.name + ':', $(this).constructor);  // jQuery
+            console.log($(this));  // jQuery是arraylike对象，1个jQuery对象对应n个Node节点对象，应用在1个jQuery对象上的操作一般会作用在全部对应Node节点对象上
+        });
+    });
+});
+
+// 上述ready()的简洁写法，效果相同
+$(function() {
+
+    // 揭秘jQuery
+    $ === jQuery;  // $("xxx") = jQuery("xxx") = new jQuery.fn.init("xxx")
+    jQuery.fn === jQuery.fn.init.prototype;  // 通过$() === jQuery()来获得jQuery对象，jQuery对象从jQuery.fn === jQuery.fn.init.prototype中继承实例方法
+    jQuery.fn.extend(objWithMethods);  // 扩展jQuery实例方法（可用来制作插件）
+    jQuery.extend(objWithMethods);  // 扩展jQuery静态方法（可用来制作插件）
+
+    jQuery.noConflict();  // 释放对$的使用，仅能使用jQuery进行操作
+    let $ = jQuery.noConflict();  // 方法返回对jQuery的引用，从而可以指定新的别名来使用jQuery
+    let jq = jQuery;  // 当然也可通过简单的赋值操作来指定新的别名
+
+    // jQuery与Node（jQuery与JS可交替使用）
+    // Node -> jQuery
+    $("selector"|elt|eltArray|eltArraylike);
+    $(document.querySelectorAll("case"));  // NodeList是内容为elt的arraylike对象
+    $($("case"));  // jQuery也是内容为elt的arraylike对象
+    // jQuery -> Node
+    $("xxxs").toArray();
+    $("xxx")[0];
+
+    // 选择器
+    $("xxx");  /* JS: document.querySelectorAll("xxx") */
+    // jQuery特有选择器
+    $("[attr!=value]");  /* JS: :not([attr=value]) */
+    $(":header");  /* JS: h1, h2, h3, h4, h5, h6 = :is(h1, h2, h3, h4, h5, h6) */
+    $(":input");  /* JS: input, textarea, select, button = :is(input, textarea, select, button) */
+    $(":text");  /* JS: input[type="text"] */
+    // :password :hidden :radio :checkbox :file :button :submit
+    $(":checked");  /* JS: input:checked */
+    $(":selected");  /* JS: option:checked */
+
+    $(":first");  // 所有选出的第一个，而非JS中的:first-child。例如，$("p:first span")选中所有p中的第一个p的所有span */
+    $(":last");
+    $(":odd");
+    $(":even");
+    $(":eq(index)");  // index starts from 0
+    $(":gt(index)");
+    $(":lt(index)");
+
+    $(":hidden");  // display: none;
+    $(":visible");
+    $(":has(selector)");  // 存在后代元素能匹配到selector
+    $(":contains(text)");  // 其自身及后代元素中包含文本text
+
+    // 结果过滤与合并
+    $("xxx").first();  // = $("xxx:first") = $( $("xxx")[0] )
+    $("xxx").last();  // = $("xxx:last") = $( Array.from( $("xxx") )[-1] )
+    $("xxx").eq(index);  // = $("xxx:eq(index)") = $( $("xxx")[index] )
+    $("xxx").slice(start, [end]);
+
+    $("xxx").each(callback);  /* JS: .forEach(callback) */
+    $("xxx").map(callback);  /* JS: .map(callback) */
+    $("xxx").filter("selector"|callback);  // = $("xxxselector"))  /* JS: .filter(callback) */
+    $("xxx").not("selector"|callback);  // 与filter()相反，= $("xxx:not(selector)"))
+    $("xxx").is("selector"|callback);  /* JS: .some(callback) */
+
+    $.merge(firstjQuery, secondjQuery);  // xxxjQuery指各种操作（比如过滤）后返回的jQuery对象
+    $.unique(_jQuery);
+
+    // DOM遍历，其中所有的方法都有可选的最后参数selector，用于过滤结果
+    $("xxx").parent();  /* JS: .parentNode */
+    $("xxx").parents();
+    $("xxx").parentsUntil("targetSelector"|targetElt);
+    $("xxx").children();  /* JS: .children */
+    $("xxx").contents();  /* JS: .childNodes */
+
+    $("xxx").siblings();
+    $("xxx").next();  /* JS: .nextElementSibling */
+    $("xxx").nextAll();
+    $("xxx").nextUntil("targetSelector"|targetElt);
+    // .prev() .prevAll() .prevUntil()
+
+    $("xxx").offsetParent();  // 返回祖先中第一个定位元素。此后的方法中均无可选的最后参数selector  /* JS: .offsetParent */
+    Boolean(
+        $("containerSelector"|containerElt).find("containedSelector"|containedElt).length
+    );  // 判断一个选择器选出的或指定的 DOM节点 ，是否包含另一个选择器选出的或指定的 DOM节点
+    $.contains(containerElt, containedElt);  // 上述函数的特例，判断一个指定DOM节点是否包含另一个指定DOM节点
+
+    // 元素属性与内容
+    $("xxx").attr("attr");  /* JS: .getAttribute("attr") */
+    $("xxx").attr("attr", value|callback);  /* JS: .setAttribute("attr") */
+    $("xxx").attr({
+        "attr0": value0,
+        "attr1": value1
+    });
+    $("xxx").removeAttr("attr");  /* JS: .removeAttribute("attr") */
+    // .prop() .removeProp()  // https://www.runoob.com/jquery/jquery-dom-get.html#comment-34909
+
+    $("xxx").html(["text"|callback]);  /* JS: .innerHTML */
+    $("xxx").text(["text"|callback]);  /* JS: .textContent */
+    $("xxxinput").val(["text"|callback]);  /* JS: .val */  // 操作一般元素、input的val属性和input中被checked和selected的val值
+
+    // 文档处理（DOM操作）
+    let $case0 = $("<p/>");  /* JS: document.createElement("p") */
+    let $case1 = $("<p></p>").text("text");
+    let $caseDocFrag = $("<div>text0 <p>textp</p> text1</div>");  /* JS: document.createDocumentFragment().innerHTML(``) */
+
+    $("xxx").append("text"|elt|callback);  /* JS: .append() */
+    $("case").append([$case0, "haha", $case1]);
+    $("xxx").prepend("text"|elt|callback);  /* JS: .prepend() */
+    $("xxx").after("text"|elt|callback);  /* JS: .after() */
+    $("xxx").before("text"|elt|callback);  /* JS: .before() */
+
+    $("xxx").replaceWith("text"|elt|callback);  /* JS: .replaceWith() */
+    $("xxx").empty();
+    $("xxx").remove();  /* JS: .remove() */
+    $("xxx").clone();  /* JS: .cloneNode(true) */
+
+    $("xxx").wrap("<html>"|elt|callback);  // 每个匹配元素用指定的HTMLtag包裹起来
+    $("xxx").unwrap();  // 与wrap()相反
+    $("xxx").wrapInner("<html>"|elt|callback);  // 每个匹配元素的子内容（包括文本节点）用指定的HTMLtag包裹起来
+
+    // CSS操作
+    $("xxx").addClass("class"|callback);  /* JS: .classList.add() */
+    $("xxx").removeClass("class"|callback);  /* JS: .classList.remove() */
+    $("xxx").toggleClass("class"|callback);  /* JS: .classList.toggle() */
+    $("xxx").hasClass("class");  /* JS: .classList.contains() */
+
+    $("xxx").css("css-prop");  /* JS: 底层以 window.getComputedStyle(e)优先，e.style打底 的方式实现 */
+    $("xxx").css("css-prop", "css-value"|callback);
+    $("xxx").css({
+        "css-prop0": "css-value0",  // 串式命名法和小驼峰命名法都可
+        "cssProp1": "css-value1"
+    });
+
+    // 效果与动画
+    $("xxx").hide([speed], [easing], [callback]);  // 将显式元素以宽高收缩的方式display: none
+    $("case").hide(2000, "linear", () => { console.log("Element has been hidden.") });  // callback在执行结束后被调用，可用于再执行其他效果，甚至可实现循环效果
+    $("xxx").show([speed], [easing], [callback]);
+    $("xxx").toggle([speed], [easing], [callback]);
+
+    $("xxx").slideUp([speed], [easing], [callback]);  // 将显式元素以上滑（高收缩）的方式display: none
+    $("xxx").slideDown([speed], [easing], [callback]);
+    $("xxx").slideToggle([speed], [easing], [callback]);
+
+    $("xxx").fadeOut([speed], [easing], [callback]);  // 将显式元素以透明度降低的方式display: none
+    $("xxx").fadeIn([speed], [easing], [callback]);
+    $("xxx").fadeToggle([speed], [easing], [callback]);
+    $("xxx").fadeTo([speed], opacity, [easing], [callback]);  // 渐变至指定opacity
+
+    $("xxx").animate({  /* JS: 底层通过每间隔时间（每帧）设置细微改变的css属性实现 */
+        "cssProp0": "css-value0",  // 和.css不同，只能用小驼峰命名法
+        "cssProp1": "css-value1"
+    }, [speed], [easing], [callback]);
+    $("xxx").stop([stopAll], [goToEnd]);  // 用于停止效果、动画。stopAll默认false仅停止当前动画，true停止所有后续动画。goToEnd默认false，true立即完成当前动画
+    $("xxx").finish();  // 立即完成所有后续动画，成为所有动画后的最终状态
+    $("xxx").delay(duration);
+    $.fx.interval = 100;  // 动画显示帧速，默认13ms
+
+    $("case").animate({
+        "opacity": '0.5',
+        "height": '+=150px',  // jQuery特有：'+='; '-=';
+        "width": 'hide'  // jQuery特有：'hide'; 'show'; 'toggle';
+    });
+    $("case").delay(2000).animate({ "opacity": '0.2' }, 5000).animate({ "opacity": '0.5' }, 5000).delay(2000).slideUp(5000)
+        .stop(false, true).slideDown(5000)  // 不影响后续动画执行
+        .stop(true).animate({ "opacity": '1' }, 5000);  // 所有后续动画停止
+    
+    // 尺寸、位置与滚动
+    $("xxx").width();  // = $("xxx").css("width")
+    $("xxx").height();  // = $("xxx").css("height")
+    $("xxx").innerWidth();  /* JS: .clientWidth */
+    $("xxx").innerHeight();  /* JS: .clientHeight */
+    $("xxx").outerWidth();  /* JS: .offsetWidth */
+    $("xxx").outerHeight();  /* JS: .offsetHeight */
+    $("xxx").outerWidth(true);  // = $("xxx").outerWidth() + $("xxx").css("margin-left") + $("xxx").css("margin-right")
+    $("xxx").outerHeight(true);  // = $("xxx").outerHeight() + $("xxx").css("margin-top") + $("xxx").css("margin-bottom")
+
+    $("xxx").position();  // 结合 $("xxx").offsetParent() 循环处理可得文档坐标  /* JS: .offsetTop/.offsetLeft */
+    $("xxx").offset();  // 视口坐标  /* JS: .getBoundingClientRect().top/.left */
+
+    $("xxx").scrollTop([val]);  // 视口和元素视口的滚动  /* JS: 底层根据window.scrollTo()和elt.scrollTop/.scrollLeft属性实现 */
+    $("xxx").scrollLeft([val]);
+
+    // 事件，其中所有的[data]都指事件处理函数能通过event.data访问到的值
+    $("xxx").click([data], callback);  // 常用DOM事件都有一个等效的jQuery方法，不再列出
+    $("xxx").hover([mouseoverHandler], mouseoutHandler);
+
+    $("xxx").bind(eventTypes, [data], callback);  // = $("xxx").on(eventTypes, [data], callback)
+    $("xxx").bind(eventsMap, [data]);  // = $("xxx").on(eventsMap, [data])
+    $("case").bind("click", clickHandler);  // 1对1
+    $("case").bind("mouseenter mouseleave", toggleHandler);  // n对1
+    $("case").bind({  // n个1对1
+        "click": clickHandler,
+        "mouseenter": mouseenterHandler,
+        "mouseleave": mouseleaveHandler,
+        "diy": diyHandler  // 支持监听自定义事件
+    });
+
+    $("xxx").trigger(eventType, [data]);  /* JS: 底层寻找冒泡路径，依次调用该路径上元素的ontype属性代表的函数 */
+    $("case").trigger("diy");  // 支持触发自定义事件
+    $("xxx").triggerHandler(eventType, [data]);  // 与trigger的不同在于：1、只作用于jQuery对象中的第一个元素。2、不会触发浏览器默认事件。
+
+    $("xxx").unbind([eventTypes, [callback]]);  // = $("xxx").off([eventTypes, [callback]]);
+    $("xxx").unbind([eventsMap]);  // = $("xxx").off([eventsMap])
+    $("case").unbind();  // 解绑所有监听
+    $("case").unbind("click diy");  // 解绑特定事件的所有监听
+    $("case").unbind("mouseenter mouseleave", toggleHandler);  // 解绑特定事件的特定监听
+    $("case").unbind({  // 超细致解绑
+        "click": clickHandler,
+        "mouseenter": mouseenterHandler,
+        "mouseleave": mouseleaveHandler,
+        "diy": diyHandler  // 支持解绑自定义事件的监听
+    });
+
+    // 事件委托指用一个元素监听所有后代元素冒泡出的事件，并统一在此元素上处理
+    // jQuery通过对冒泡来的事件的 事件目标（源） 进行选择器筛选，高效地实现了有选择性地监听后代。这种方式也决定了其对以后插入的新元素依然有效
+    $("xxx").delegate("selector", eventTypes, [data], callback);  // = $("xxx").on(eventTypes, "selector", [data], callback)
+    $("xxx").delegate("selector", eventsMap, [data]);  // = $("xxx").on(eventsMap, "selector", [data])
+    $("xxx").undelegate([["selector"], eventTypes, [callback]]);  // = $("xxx").off([eventTypes, ["selector"], [callback]]);)
+    $("xxx").undelegate(["selector"], eventsMap);  // = $("xxx").off([eventsMap, ["selector"]]);
+    // .on()/.off()是所有上述绑定操作的底层实现，其也被作为接口提供出来
+    $("xxx").on(eventTypes, ["selector"], [data], callback);
+    $("xxx").on(eventsMap, ["selector"], [data]);
+    $("xxx").off([eventTypes, ["selector"], [callback]]);
+    $("xxx").off([eventsMap, ["selector"]]);
+
+    // Ajax
+    
+    
+    // 工具（强化JavaScript语言核心）
+    $.type(obj);
+    $.extend([deep], tgtObj, ...srcObjs);
+
+    $.makeArray(obj);  /* JS: Array.from(obj) */
+    $.each(obj|arr, callback);  /* JS: arr.forEach(callback) */
+    $.map(obj|arr, callback);  /* JS: arr.map(callback) */
+    $.grep(arr, callback);  /* JS: arr.filter(callback) */
+    $.merge(firstArr, secondArr);  /* JS: firstArr.concat(secondArr) */
+    $.inArray(val, arr, [fromIndex]);  /* JS: arr.indexOf(val, [fromIndex]) */
+
+    // Deferred Object（早期Promise）
+    // https://api.jquery.com/category/deferred-object/
+    let deferred = $.Deferred();
+    $.when(deferreds);
+
+    $.when(deferreds).then(doneCallbacks, failCallbacks);
+    $.when(deferreds).done(doneCallbacks);
+    $.when(deferreds).fail(failCallbacks);
+    deferred.reject(args);
+    deferred.resolve(args);
+
+});
+
+</script>
+
+</html>
+
